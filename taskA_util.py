@@ -20,8 +20,10 @@ detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 
 labels_filename = 'labels.csv'
-feat_sav = 'A_input'
-lab_sav = 'A_output'
+feat1_sav = 'A1_feat.dat'
+lab1_sav = 'A1_label.dat'
+feat2_sav = 'A2_feat.dat'
+lab2_sav = 'A2_label.dat'
 ## File is saved in output for both gender and smiling
 ## Odd is gender file, Even is smiling file
 
@@ -32,21 +34,33 @@ images_dir = os.path.join(celeba_dir,'img')
 labels_dir = os.path.join(celeba_dir,labels_filename)
 
 def main():
-    feature, label, error = extract_features_labels(images_dir, labels_dir, select=None)
+    featureA1, labelA1,_ = extract_features_labels(images_dir, labels_dir, select=1)
     
+    os.chdir("./Datasets")
     ## saving features extraction data
-    savfile_feat = open(feat_sav, 'wb')
-    pickle.dump(feature, savfile_feat)
-    savfile_feat.close()
+    savfile_feat1 = open(feat1_sav, 'wb')
+    pickle.dump(featureA1, savfile_feat1)
+    savfile_feat1.close()
 
     ## saving labels data
-    savfile_label = open(lab_sav, 'wb')
-    pickle.dump(label, savfile_label)
-    savfile_label.close()
+    savfile_label1 = open(lab1_sav, 'wb')
+    pickle.dump(labelA1, savfile_label1)
+    savfile_label1.close()
+
+    featureA2, labelA2, _ = extract_features_labels(images_dir, labels_dir, select=2)
+
+    savfile_feat2 = open(feat2_sav, 'wb')
+    pickle.dump(featureA2, savfile_feat2)
+    savfile_feat2.close()
+    
+    savfile_label2 = open(lab2_sav, 'wb')
+    pickle.dump(labelA2, savfile_label2)
+    savfile_label2.close()
+
+    os.chdir("..")
 
 
-
-def extract_features_labels(images_dir, labels_dir, select = None):
+def extract_features_labels(images_dir, labels_dir, select=1):
     """ return:
         landmark_features:  an array containing 68 landmark points for each image in celeba folder
         labels:  an array containing (select = 1 , gender label) (select = 2 , smiling label) (select = None, both)
@@ -56,21 +70,17 @@ def extract_features_labels(images_dir, labels_dir, select = None):
     target_size = None
     labels_file = open(labels_dir, 'r')
     lines = labels_file.readlines()
-    if select == None:
-        lab_gen = {line.split('\t')[0] : int(line.split('\t')[2]) for line in lines[1:]} 
-        lab_smi = {line.split('\t')[0] : int(line.split('\t')[3]) for line in lines[1:]}
-    elif select == 1:
-        lab_gen = {line.split('\t')[0] : int(line.split('\t')[2]) for line in lines[1:]} 
-    elif select == 2:
-         lab_smi = {line.split('\t')[0] : int(line.split('\t')[3]) for line in lines[1:]}
-    else:
-        print("Error !! select must be either 1,2 or None")
-        return
+    lab_gen = {line.split('\t')[0] : int(line.split('\t')[2]) for line in lines[1:]} 
+    lab_smi = {line.split('\t')[0] : int(line.split('\t')[3]) for line in lines[1:]}
+
         
     if os.path.isdir(images_dir):
         all_features = []
-        all_labels = []
+        reduced_features = []
+        gender_labels = []
+        smiling_labels = []
         error_features = []
+
         for img_path in image_paths:
             file_name= img_path.split('.')[0].split('\\')[-1] ##getting name of file; remove png/jpg + dir
 
@@ -80,17 +90,27 @@ def extract_features_labels(images_dir, labels_dir, select = None):
                                target_size=target_size,
                                interpolation='bicubic'))
             features, _ = run_dlib_shape(img)
+            x = features
             if features is not None:
                 all_features.append(features)
-                all_labels.append(lab_gen[file_name])
-                all_labels.append(lab_smi[file_name])
+                reduced_features.append(np.concatenate((x[0:17],x[48:68])))
+                gender_labels.append(lab_gen[file_name])
+                smiling_labels.append(lab_smi[file_name])
             if features is None:
                 error_features.append(file_name)
                 
 
     landmark_features = np.array(all_features)
-    lab = (np.array(all_labels) + 1)/2 # converts the -1 into 0, so male=0 and female=1
-    return landmark_features, lab, error_features
+    reduce = np.array(reduced_features)
+    gender_label = (np.array(gender_labels) +1)/2
+    smiling_label = (np.array(smiling_labels) + 1)/2 # converts the -1 into 0, so male=0 and female=1
+
+    if select == 1:
+        return landmark_features, gender_label, error_features
+    elif select == 2:
+        return reduce, smiling_label, error_features
+    else:
+        return -1
 
 def shape_to_np(shape, dtype="int"):
     # initialize the list of (x, y)-coordinates
@@ -160,13 +180,20 @@ def totuple(a):
     except TypeError:
         return a
 
-def split_data(image_feature, image_label):
+def split_data_68(image_feature, image_label):
     i,j,k,l = train_test_split(image_feature, image_label, test_size = 0.2, random_state=42)
     train_image = i.reshape((len(i), 68*2))
-#     train_image = i
     train_label = totuple(k)
     test_image = j.reshape((len(j), 68*2))
-#     test_image = j
+    test_label = totuple(l)
+    
+    return train_image, train_label, test_image, test_label
+
+def split_data_37(image_feature, image_label):
+    i,j,k,l = train_test_split(image_feature, image_label, test_size = 0.2, random_state=42)
+    train_image = i.reshape((len(i), 37*2))
+    train_label = totuple(k)
+    test_image = j.reshape((len(j), 37*2))
     test_label = totuple(l)
     
     return train_image, train_label, test_image, test_label
