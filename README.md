@@ -7,7 +7,7 @@ Brief Description of the organisation of the project.
 
 3. main.py imports both utility files to be used for the data training and testing. The output of main.py produces training accuracy and testing accuracy for each tasks.
 
-4. Since dataset is irrelevant to be uploaded to github (since big in size), the extracted inputs from utility files saved the extracted inputs of image into dat file in a new folder called Datasets.
+4. dataset folder contains raw image. Meanwhile Datasets folder contains processed image or extracted inputs from image.
 
 5. Some support files are also included in the same directory as main.py(ie. shape_predictor_68_face_landmarks.dat)
 
@@ -22,8 +22,8 @@ Role of each file
 7. B2.ipynb - Progress file for task B2
 8. shape_predictor_68_face_landmarks.dat - Landmark file to extract 68 features from image
 9. haarcascade_frontalface_default.xml - Landmark file for face detection using Haar cascade
-10. haarcascade_smile.xml - Landmark file for smile detecetion using Haar cascade
-
+10. haarcascade_smile.xml - Landmark file for smile detection using Haar cascade
+11. haarcascade_eye_tree_eyeglasses.xml = Landmark file for eye and glasses detection using Haar cascade
 
 OS Version
 Windows 10.0.17763
