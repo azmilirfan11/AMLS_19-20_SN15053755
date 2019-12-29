@@ -11,12 +11,18 @@ import keras
 import sklearn
 import matplotlib
 
+labels_filename = 'labels.csv'
+basedir = os.path.abspath(os.curdir)
+prepro_dir = os.path.join(basedir,'Datasets')
 
-with open('A2_feat.dat', 'rb') as f:
-    A2_feat_data = pickle.load(f)
+dataframe = pandas.read_pickle(os.path.join(prepro_dir, 'B_df.pkl'))
 
-print("\n")
-print(len(A2_feat_data))
+print(dataframe)
+# with open('A2_feat.dat', 'rb') as f:
+#     A2_feat_data = pickle.load(f)
+
+# print("\n")
+# print(len(A2_feat_data))
 
 # print("\n")
 # ## Operating System Version

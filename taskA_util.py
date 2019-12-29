@@ -1,3 +1,5 @@
+# ======================================================================================================================
+# Import Library
 import os
 import cv2
 import dlib
@@ -9,23 +11,18 @@ from keras.preprocessing import image
 from sklearn import svm
 from sklearn.dummy import DummyClassifier
 from sklearn.svm import SVC
-from sklearn.model_selection import train_test_split, GridSearchCV, learning_curve, ShuffleSplit
+from sklearn.model_selection import train_test_split, GridSearchCV, learning_curve, ShuffleSplit, cross_val_score
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, recall_score, precision_score, f1_score
 import matplotlib.pyplot as plt
 
-# %matplotlib inline
-# # required magic function
+# %matplotlib inline # required magic function
 
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 
+# ======================================================================================================================
+# Directory List and Filename
 labels_filename = 'labels.csv'
-feat1_sav = 'A1_feat.dat'
-lab1_sav = 'A1_label.dat'
-feat2_sav = 'A2_feat.dat'
-lab2_sav = 'A2_label.dat'
-## File is saved in output for both gender and smiling
-## Odd is gender file, Even is smiling file
 
 basedir = os.path.abspath(os.curdir)
 dataset_dir = os.path.join(basedir,'dataset')
@@ -33,9 +30,23 @@ celeba_dir = os.path.join(dataset_dir,'celeba')
 images_dir = os.path.join(celeba_dir,'img')
 labels_dir = os.path.join(celeba_dir,labels_filename)
 
+# ======================================================================================================================
+# Save Filename
+feat1_sav = 'A1_feat.dat'
+lab1_sav = 'A1_label.dat'
+feat2_sav = 'A2_feat.dat'
+lab2_sav = 'A2_label.dat'
+
+# ======================================================================================================================
+# Main Function
 def main():
-    featureA1, labelA1,_ = extract_features_labels(images_dir, labels_dir, select=1)
+    # For A1
+    print("Extracting Data for Task A1\n")
+    featureA1, labelA1, _ = extract_features_labels(images_dir, labels_dir, select=1)
+    print("Data Extracted\n")
+    print("\n")
     
+    print("Saving data to Datasets folder\n")
     os.chdir("./Datasets")
     ## saving features extraction data
     savfile_feat1 = open(feat1_sav, 'wb')
@@ -47,8 +58,18 @@ def main():
     pickle.dump(labelA1, savfile_label1)
     savfile_label1.close()
 
-    featureA2, labelA2, _ = extract_features_labels(images_dir, labels_dir, select=2)
+    os.chdir("..")
+    print("Save succesful\n")
+    print("\n")
 
+    # For A2
+    print("Extracting Dat for Task A2\n")
+    featureA2, labelA2, _ = extract_features_labels(images_dir, labels_dir, select=2)
+    print("Data Extracted\n")
+    print("\n")
+
+    print("Saving data to Datasets folder\n")
+    os.chdir("./Datasets")
     savfile_feat2 = open(feat2_sav, 'wb')
     pickle.dump(featureA2, savfile_feat2)
     savfile_feat2.close()
@@ -58,9 +79,12 @@ def main():
     savfile_label2.close()
 
     os.chdir("..")
+    print("Save successful\n")
+    print("\n")
 
-
-def extract_features_labels(images_dir, labels_dir, select=1):
+# ======================================================================================================================
+# Support Functions
+def extract_features_labels(images_dir, labels_dir, select):
     """ return:
         landmark_features:  an array containing 68 landmark points for each image in celeba folder
         labels:  an array containing (select = 1 , gender label) (select = 2 , smiling label) (select = None, both)
@@ -180,6 +204,9 @@ def totuple(a):
     except TypeError:
         return a
 
+
+# ======================================================================================================================
+# Functions to be called in main.py
 def split_data_68(image_feature, image_label):
     i,j,k,l = train_test_split(image_feature, image_label, test_size = 0.2, random_state=42)
     train_image = i.reshape((len(i), 68*2))
@@ -198,16 +225,22 @@ def split_data_37(image_feature, image_label):
     
     return train_image, train_label, test_image, test_label
 
-# class A1(BaseEstimator, ClassifierMixin):
-#     def __init__(self):
-#         SVC(C=Cs, gamma=gammas, kernel=kernels)
+def Atrain(classifier, xtrain, ytrain, crossval=5):
+    classifier.fit(xtrain, ytrain)
+    cvscore = cross_val_score(classifier, xtrain, ytrain, cv=crossval)
+    cvscoremean = cvscore.mean()
+    return classifier, cvscoremean
 
-#     def train(self, trainingdata, traininglabel):
-#         A1.fit(trainingdata, traininglabel)
-#         ## crossvalidation here
-#         # return crossvalidation score
+def Atest(classifier, xtest, ytest):
+    pred = classifier.predict(xtest)
+    accscore = accuracy_score(pred, ytest)
+    return accscore
 
 
 
+
+
+# ======================================================================================================================
+# Run Main Function
 if __name__ == "__main__":
     main()
