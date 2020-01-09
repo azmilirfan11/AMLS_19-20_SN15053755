@@ -13,6 +13,8 @@ Brief Description of the organisation of the project.
 
 5. Some support files are also included in the same directory as base directory (ie. shape_predictor_68_face_landmarks.dat)
 
+6. New utility file from new test images named new_test_util.py as a support for new test dataset given.
+
 
 Role of each file
 1. main.py - Main python file. Assessor should run this. (need files especially in Datasets folder)
@@ -31,6 +33,7 @@ Role of each file
 14. haarcascade_frontalface_default.xml - Landmark file for face detection using Haar cascade
 15. haarcascade_smile.xml - Landmark file for smile detection using Haar cascade
 16. haarcascade_eye_tree_eyeglasses.xml = Landmark file for eye and glasses detection using Haar cascade
+17. dataset_test_AMLS_19-20 - New test dataset given for more testing to be done.
 
 OS Version : Windows 10.0.17763
 
